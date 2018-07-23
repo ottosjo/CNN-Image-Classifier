@@ -42,4 +42,5 @@ wwwroot
 *.sql
 *.sqlite
 __py*
+images
 tf-log

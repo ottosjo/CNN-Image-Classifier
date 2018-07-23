@@ -1,0 +1,16 @@
+{
+    "Records": [
+        {
+            "keywords": "poodle",
+            "output_directory": "./images",
+            "limit": 100,
+            "size": "small"
+        },
+        {
+            "keywords": "pizza",
+            "output_directory": "./images",
+            "limit": 100,
+            "size": "small"
+        }
+    ]
+}
