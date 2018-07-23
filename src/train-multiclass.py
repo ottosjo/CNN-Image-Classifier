@@ -39,6 +39,7 @@ from keras.models import Sequential
 from keras.layers import Dropout, Flatten, Dense, Activation
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras import callbacks
+import tensorflow as tf
 
 DEV = False
 argvs = sys.argv
@@ -83,7 +84,9 @@ model.add(Flatten())
 model.add(Dense(256))
 model.add(Activation("relu"))
 model.add(Dropout(0.5))
-model.add(Dense(classes_num, activation='softmax'))
+# model.add(Dense(classes_num, activation='softmax'))
+model.add(Activation(tf.nn.softmax))
+
 
 model.compile(loss='categorical_crossentropy',
               optimizer=optimizers.RMSprop(lr=lr),
@@ -118,7 +121,7 @@ cbks = [tb_cb]
 
 model.fit_generator(
     train_generator,
-    samples_per_epoch=samples_per_epoch,
+    steps_per_epoch=samples_per_epoch,
     epochs=epochs,
     validation_data=validation_generator,
     callbacks=cbks,
@@ -129,3 +132,5 @@ if not os.path.exists(target_dir):
   os.mkdir(target_dir)
 model.save('./models/model.h5')
 model.save_weights('./models/weights.h5')
+
+print('Done creating model!')
