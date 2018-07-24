@@ -43,4 +43,5 @@ wwwroot
 *.sqlite
 __py*
 images
+models
 tf-log
