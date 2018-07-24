@@ -1,4 +1,9 @@
+
 import os
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "0"        # specify gpu numbers to use
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"        # specify gpu numbers to use
+
 import numpy as np
 from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 from keras.models import Sequential, load_model
@@ -29,7 +34,20 @@ tn = 0
 fp = 0
 fn = 0
 
-for i, ret in enumerate(os.walk('./test-data/poodle')):
+test_dir = './images/test'
+
+for i, ret in enumerate(os.walk(os.path.join(test_dir, 'random'))):
+  for i, filename in enumerate(ret[2]):
+    if filename.startswith("."):
+      continue
+    print("Label: Random")
+    result = predict(ret[0] + '/' + filename)
+    if result == "poodle":
+      tn += 1
+    else:
+      fp += 1
+
+for i, ret in enumerate(os.walk(os.path.join(test_dir, 'poodle'))):
   for i, filename in enumerate(ret[2]):
     if filename.startswith("."):
       continue
@@ -40,7 +58,7 @@ for i, ret in enumerate(os.walk('./test-data/poodle')):
     else:
       fp += 1
 
-for i, ret in enumerate(os.walk('./test-data/pizza')):
+for i, ret in enumerate(os.walk(os.path.join(test_dir, 'pizza'))):
   for i, filename in enumerate(ret[2]):
     if filename.startswith("."):
       continue

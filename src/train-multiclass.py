@@ -2,8 +2,8 @@
 First, you need to collect training data and deploy it like this.
 e.g. 3-classes classification Pizza, Poodle, Rose
 
-  ./data/
-    train/
+  ./images/
+    training/
       pizza/
         pizza1.jpg
         pizza2.jpg
@@ -31,15 +31,18 @@ e.g. 3-classes classification Pizza, Poodle, Rose
         ...
 """
 
-import sys
 import os
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "0"        # specify gpu numbers to use
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"        # specify gpu numbers to use
+
+import sys
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 from keras.models import Sequential
 from keras.layers import Dropout, Flatten, Dense, Activation
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras import callbacks
-import tensorflow as tf
 
 DEV = False
 argvs = sys.argv
@@ -53,16 +56,16 @@ if DEV:
 else:
   epochs = 20
 
-train_data_path = './data/train'
-validation_data_path = './data/validation'
+train_data_path = './images/training'
+validation_data_path = './images/validation'
 
 """
 Parameters
 """
 img_width, img_height = 150, 150
 batch_size = 32
-samples_per_epoch = 1000
-validation_steps = 300
+samples_per_epoch = 100
+validation_steps = 30
 nb_filters1 = 32
 nb_filters2 = 64
 conv1_size = 3
@@ -84,10 +87,9 @@ model.add(Flatten())
 model.add(Dense(256))
 model.add(Activation("relu"))
 model.add(Dropout(0.5))
-# model.add(Dense(classes_num, activation='softmax'))
-model.add(Activation(tf.nn.softmax))
+model.add(Dense(classes_num, activation='softmax'))
 
-
+print('Compiling model')
 model.compile(loss='categorical_crossentropy',
               optimizer=optimizers.RMSprop(lr=lr),
               metrics=['accuracy'])
@@ -116,9 +118,11 @@ validation_generator = test_datagen.flow_from_directory(
 Tensorboard log
 """
 log_dir = './tf-log/'
-tb_cb = callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+tb_cb = callbacks.TensorBoard(log_dir=log_dir, histogram_freq=0)
+#lgr = callbacks.ProgbarLogger(count_mode='samples')
 cbks = [tb_cb]
 
+print('Fitting model weights')
 model.fit_generator(
     train_generator,
     steps_per_epoch=samples_per_epoch,
@@ -127,6 +131,7 @@ model.fit_generator(
     callbacks=cbks,
     validation_steps=validation_steps)
 
+print('Saving model')
 target_dir = './models/'
 if not os.path.exists(target_dir):
   os.mkdir(target_dir)
