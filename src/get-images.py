@@ -6,22 +6,22 @@ from google_images_download import google_images_download
 
 _max_get = 100
 _date_filter_months = 6
-_image_base_dir = "./temp-images/"
-_image_types = [
+_image_base_dir = "./images/"
+_image_sets = [
     "training",
     "validation",
     "test"
 ]
-# _image_counts = [
-#     1000,
-#     300,
-#     100
-# ]
 _image_counts = [
-    10,
-    10,
-    10
+    1000,
+    300,
+    100
 ]
+# _image_counts = [
+#     10,
+#     10,
+#     10
+# ]
 _categories = [
     "flower",
     "sausage",
@@ -36,51 +36,52 @@ _arguments={
 }
 
 def get_images(
-    categories,
-    arguments=_arguments,
-    image_types=_image_types,
-    image_counts=_image_counts,
-    image_base_dir=_image_base_dir):
+    categories:list,
+    arguments:dict=_arguments,
+    image_sets:list=_image_sets,
+    image_counts:list=_image_counts,
+    image_base_dir:str=_image_base_dir):
     
     if (categories == None):
         raise ValueError("categories")
     if (arguments == None):
         raise ValueError("arguments")
-    if (image_types == None):
-        raise ValueError("image_types")
+    if (image_sets == None):
+        raise ValueError("image_sets")
     if (image_counts == None):
         raise ValueError("image_counts")
     if (image_base_dir == None):
         raise ValueError("image_base_dir")
-    if (len(image_types) != len(image_counts)):
-        raise ValueError(f"len(image_types) must equal len(image_counts)")
+    if (len(image_sets) != len(image_counts)):
+        raise ValueError(f"len(image_sets) must equal len(image_counts)")
     
     print(f"Starting to obtain images for {len(categories)} categories: {categories}...")
     downloader = google_images_download.googleimagesdownload()
 
-    for i in range(len(image_types)):
-        # assign image types
-        im_type = image_types[i]
-        im_count = image_counts[i]
-        # reset date filter
+    for i in range(len(categories)):
+        arguments["keywords"] = categories[i]
+        arguments["prefix"] = categories[i]
+
+        # reset date filter when fetching images of another image category
         date_to = datetime.now()
         date_to = date_to - timedelta(days=date_to.day-1)
         date_from = date_to - relativedelta(months=_date_filter_months)
 
-        print(f"Downloading {im_count} images for the {im_type}-set")
-        arguments["limit"] = im_count
-        arguments["output_directory"] = image_base_dir + im_type
+        # iterate over the image sets - usually [training, validation, test]
+        for i in range(len(image_sets)):
+            # assign image types
+            im_type = image_sets[i]
+            im_count = image_counts[i]
 
-        for i in range(len(categories)):
-            arguments["keywords"] = categories[i]
-            arguments["prefix"] = categories[i]
-            #arguments["similar_images"] = similar[i]
-
+            print(f"Downloading {im_count} images for the {im_type}-set")
+            arguments["limit"] = im_count
+            arguments["output_directory"] = image_base_dir + im_type
+            
             im_remaining = im_count
             while (im_remaining > 0):
                 arguments["limit"] = min(im_remaining, _max_get)
-                # arguments["time_range"] = get_date_range(date_from, date_to)
-                downloader.download(arguments)
+                arguments["time_range"] = get_date_range(date_from, date_to)
+                paths = downloader.download(arguments)
 
                 # update image counter and date filter
                 im_remaining = max(0, im_remaining-_max_get)
@@ -96,7 +97,7 @@ def get_date_range(date_from: datetime, date_to: datetime):
     return get_date_range_str(date_from.strftime('%m/%d/%Y'), date_to.strftime('%m/%d/%Y'))
 
 
-def remove_corrupt_images(categories, image_types=_image_types):
+def remove_corrupt_images(categories, image_sets=_image_sets):
     print("Identifying and removing any corrupt images...")
 
 
